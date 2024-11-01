@@ -50,32 +50,22 @@
 
       <main>
         <div v-if="showProduct">
-          <label for="sort">Sort By: </label>
-          <select id="sort" v-model="sortCriteria" @change="sortActivities">
-            <option value="name-asc">Name (A-Z)</option>
-            <option value="name-desc">Name (Z-A)</option>
-            <option value="location-asc">Location (A-Z)</option>
-            <option value="location-desc">Location (Z-A)</option>
-            <option value="price-asc">Price (Low to High)</option>
-            <option value="price-desc">Price (High to Low)</option>
-            <option value="quantity-asc">Quantity (Low to High)</option>
-            <option value="quantity-desc">Quantity (High to Low)</option>
+          <label for="sortCriteria">Sort By:</label>
+          <select
+            id="sortCriteria"
+            v-model="sortCriteria"
+            @change="sortActivities"
+          >
+            <option value="name">Name</option>
+            <option value="price">Price</option>
+            <option value="location">Location</option>
+            <option value="quantity">Quantity</option>
           </select>
 
-          <label for="stateFilter">Filter by State:</label>
-          <select
-            id="stateFilter"
-            v-model="stateFilter"
-            @change="filterByState"
-          >
-            <option value="">All States</option>
-            <option value="Abu Dhabi">Abu Dhabi</option>
-            <option value="Ajman">Ajman</option>
-            <option value="Dubai">Dubai</option>
-            <option value="Fujairah">Fujairah</option>
-            <option value="Ras Al Khaimah">Ras Al Khaimah</option>
-            <option value="Sharjah">Sharjah</option>
-            <option value="Umm Al-Quwain">Umm Al-Quwain</option>
+          <label for="sortOrder">Order:</label>
+          <select id="sortOrder" v-model="sortOrder" @change="sortActivities">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
           </select>
 
           <div class="activities-container">
@@ -196,6 +186,8 @@
         var webstore = new Vue({
           el: "#app",
           data: {
+            sortOrder: "asc", // Default sort order
+
             sitename: "After School Explorers",
             activities: [
               {
@@ -203,7 +195,7 @@
                 title: "Basketball",
                 description: "Join us for an exciting basketball experience.",
                 location: "Ajman",
-                price: 30,
+                price: 40,
                 availableInventory: 10,
                 image: "images/basketball.png",
 
@@ -215,7 +207,7 @@
                 title: "Gaming Club",
                 description: "Join us for an exciting basketball experience.",
                 location: "Abu Dhabi",
-                price: 30,
+                price: 90,
                 availableInventory: 15,
                 image: "images/gaming.png",
                 stars:
@@ -226,7 +218,7 @@
                 title: "Art Class",
                 description: "Join us for an exciting basketball experience.",
                 location: "Sharjah",
-                price: 30,
+                price: 80,
                 availableInventory: 8,
                 image: "images/artclass.png",
 
@@ -266,8 +258,8 @@
 
           computed: {
             filteredAndSortedActivities() {
-              const query = this.searchQuery.toLowerCase(); // Store the lowercase search query
-              return this.activities
+              const query = this.searchQuery.toLowerCase();
+              const sortedActivities = this.activities
                 .filter((activity) => {
                   const titleMatches = activity.title
                     .toLowerCase()
@@ -280,27 +272,25 @@
                   return (titleMatches || locationMatches) && stateMatches;
                 })
                 .sort((a, b) => {
-                  // Add sorting logic based on the selected sort criteria
-                  if (this.sortCriteria === "name-asc") {
-                    return a.title.localeCompare(b.title);
-                  } else if (this.sortCriteria === "name-desc") {
-                    return b.title.localeCompare(a.title);
-                  } else if (this.sortCriteria === "location-asc") {
-                    return a.location.localeCompare(b.location);
-                  } else if (this.sortCriteria === "location-desc") {
-                    return b.location.localeCompare(a.location);
-                  } else if (this.sortCriteria === "price-asc") {
-                    return a.price - b.price;
-                  } else if (this.sortCriteria === "price-desc") {
-                    return b.price - a.price;
-                  } else if (this.sortCriteria === "quantity-asc") {
-                    return a.availableInventory - b.availableInventory;
-                  } else if (this.sortCriteria === "quantity-desc") {
-                    return b.availableInventory - a.availableInventory;
+                  let comparison = 0;
+                  // Compare based on the selected sort criteria
+                  if (this.sortCriteria === "name") {
+                    comparison = a.title.localeCompare(b.title);
+                  } else if (this.sortCriteria === "location") {
+                    comparison = a.location.localeCompare(b.location);
+                  } else if (this.sortCriteria === "price") {
+                    comparison = a.price - b.price;
+                  } else if (this.sortCriteria === "quantity") {
+                    comparison = a.availableInventory - b.availableInventory;
                   }
-                  return 0; // Default case if no sorting matches
+
+                  // Adjust for ascending or descending order
+                  return this.sortOrder === "asc" ? comparison : -comparison;
                 });
+
+              return sortedActivities;
             },
+
             totalPrice() {
               return this.cart.reduce((total, item) => total + item.price, 0);
             },
