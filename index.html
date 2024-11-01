@@ -191,6 +191,200 @@
           </button>
         </div>
       </main>
+
+      <script type="text/javascript">
+        var webstore = new Vue({
+          el: "#app",
+          data: {
+            sitename: "After School Explorers",
+            activities: [
+              {
+                id: 1001,
+                title: "Basketball",
+                description: "Join us for an exciting basketball experience.",
+                location: "Ajman",
+                price: 30,
+                availableInventory: 10,
+                image: "images/basketball.png",
+
+                stars:
+                  "<span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star'></span><span class='far fa-star'></span><span class='far fa-star'></span>",
+              },
+              {
+                id: 1002,
+                title: "Gaming Club",
+                description: "Join us for an exciting basketball experience.",
+                location: "Abu Dhabi",
+                price: 30,
+                availableInventory: 15,
+                image: "images/gaming.png",
+                stars:
+                  "<span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star-half-alt'></span><span class='far fa-star'></span>",
+              },
+              {
+                id: 1003,
+                title: "Art Class",
+                description: "Join us for an exciting basketball experience.",
+                location: "Sharjah",
+                price: 30,
+                availableInventory: 8,
+                image: "images/artclass.png",
+
+                stars:
+                  "<span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star'></span><span class='fas fa-star-half-alt'></span>",
+              },
+              {
+                id: 1004,
+                title: "Fashion Club",
+                description: "Join us for an exciting basketball experience.",
+                location: "Dubai",
+                price: 30,
+                availableInventory: 11,
+                image: "images/fashion.png",
+
+                stars:
+                  "<span class='fas fa-star'></span><span class='fas fa-star'></span><span class='far fa-star'></span><span class='far fa-star'></span><span class='far fa-star'></span>",
+              },
+            ],
+            cart: [],
+            order: {
+              firstName: "",
+              lastName: "",
+              address: "",
+              city: "",
+              state: "",
+              zip: null,
+              phone: null,
+              paymentMethod: "",
+              method: "",
+            },
+            showProduct: true,
+            sortCriteria: "name-asc",
+            searchQuery: "",
+            stateFilter: "", // New property for state filter
+          },
+
+          computed: {
+            filteredAndSortedActivities() {
+              const query = this.searchQuery.toLowerCase(); // Store the lowercase search query
+              return this.activities
+                .filter((activity) => {
+                  const titleMatches = activity.title
+                    .toLowerCase()
+                    .includes(query);
+                  const locationMatches = activity.location
+                    .toLowerCase()
+                    .includes(query);
+                  const stateMatches =
+                    !this.stateFilter || activity.location === this.stateFilter;
+                  return (titleMatches || locationMatches) && stateMatches;
+                })
+                .sort((a, b) => {
+                  // Add sorting logic based on the selected sort criteria
+                  if (this.sortCriteria === "name-asc") {
+                    return a.title.localeCompare(b.title);
+                  } else if (this.sortCriteria === "name-desc") {
+                    return b.title.localeCompare(a.title);
+                  } else if (this.sortCriteria === "location-asc") {
+                    return a.location.localeCompare(b.location);
+                  } else if (this.sortCriteria === "location-desc") {
+                    return b.location.localeCompare(a.location);
+                  } else if (this.sortCriteria === "price-asc") {
+                    return a.price - b.price;
+                  } else if (this.sortCriteria === "price-desc") {
+                    return b.price - a.price;
+                  } else if (this.sortCriteria === "quantity-asc") {
+                    return a.availableInventory - b.availableInventory;
+                  } else if (this.sortCriteria === "quantity-desc") {
+                    return b.availableInventory - a.availableInventory;
+                  }
+                  return 0; // Default case if no sorting matches
+                });
+            },
+            totalPrice() {
+              return this.cart.reduce((total, item) => total + item.price, 0);
+            },
+            isOrderComplete() {
+              return (
+                this.order.firstName &&
+                this.order.lastName &&
+                this.order.address &&
+                this.order.city &&
+                this.order.state &&
+                this.order.zip &&
+                this.order.phone &&
+                this.order.paymentMethod &&
+                this.order.method
+              );
+            },
+            cartItemCount() {
+              return this.cart.length;
+            },
+          },
+          methods: {
+            addToCart(activity) {
+              if (this.canAddToCart(activity)) {
+                this.cart.push(activity);
+                activity.availableInventory--;
+                console.log("Cart items:", this.cart); // Debugging line
+              } else {
+                alert("Cannot add to cart: Item is out of stock!");
+              }
+            },
+            removeFromCart(item) {
+              const index = this.cart.indexOf(item);
+              if (index > -1) {
+                this.cart.splice(index, 1);
+                item.availableInventory++;
+                console.log("Cart items after removal:", this.cart); // Debugging line
+              }
+            },
+            showCheckout() {
+              this.showProduct = this.showProduct ? false : true; // Toggle showProduct
+            },
+            submitForm() {
+              alert("Your order was successful!");
+              console.log("Order submitted", this.order);
+              this.resetOrder();
+            },
+            resetOrder() {
+              this.order = {
+                firstName: "",
+                lastName: "",
+                address: "",
+                city: "",
+                state: "",
+                zip: null,
+                phone: null,
+                paymentMethod: "",
+                method: "",
+              };
+              this.cart = [];
+              this.showProduct = true; // Show products again after checkout
+            },
+            searchActivity() {
+              // This method can be simplified or removed since it's handled in the computed property
+            },
+            sortActivities() {
+              // Sorting is handled in computed property
+            },
+            canAddToCart(activity) {
+              return activity.availableInventory > 0;
+            },
+            remainingStock(activity) {
+              return activity.availableInventory > 0
+                ? activity.availableInventory
+                : "Out of stock";
+            },
+            backToActivities() {
+              this.showProduct = true; // Show activities again
+            },
+            filterByState() {
+              // This triggers reactivity when the dropdown selection changes
+            },
+          },
+        });
+      </script>
     </div>
   </body>
 </html>
